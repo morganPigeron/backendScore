@@ -1,3 +1,14 @@
 ###
 
 GET http://localhost:8080/scores HTTP/1.1
+
+###
+
+POST http://localhost:8080/scores HTTP/1.1
+content-type: application/json
+
+{
+  "player": "testPlayer",
+  "date": "2022-03-18 12:34:56.053273239 +0100 CET m=+0.001466608",
+  "points":100
+}
