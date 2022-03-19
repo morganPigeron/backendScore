@@ -1,17 +1,16 @@
 package main
 
 import (
-	"backend-score/presenter"
-	"backend-score/repository"
+	"backend-score/controllers"
+	"backend-score/core/score"
+	"backend-score/presenters"
 )
 
 func main() {
+	db := presenters.NewMangoRepository()
+	service := score.NewGameScoreService(db)
 
-	db := repository.NewMangoDB()
-	defer db.Disconnect()
-
-	api := presenter.NewApi()
-	api.SetRepository(db)
+	api := controllers.NewApi()
+	api.SetService(service)
 	api.Start()
-
 }

@@ -1,7 +1,7 @@
-package repository
+package presenters
 
 import (
-	"backend-score/model"
+	"backend-score/core/score"
 	"context"
 	"log"
 
@@ -10,18 +10,18 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type MangoDB struct {
+type mongoDB struct {
 	collection *mongo.Collection
 	client     *mongo.Client
 }
 
-func NewMangoDB() *MangoDB {
-	r := new(MangoDB)
-	r.InitMango()
-	return r
+func NewMangoRepository() score.GameScoreRepository {
+	r := mongoDB{}
+	InitMango(&r)
+	return &r
 }
 
-func (db *MangoDB) Disconnect() {
+func (db *mongoDB) Disconnect() {
 	err := db.client.Disconnect(context.TODO())
 
 	if err != nil {
@@ -29,14 +29,16 @@ func (db *MangoDB) Disconnect() {
 	}
 }
 
-func (db *MangoDB) InsertMany(a []interface{}) {
-	_, err := db.collection.InsertMany(context.TODO(), a)
-	if err != nil {
-		log.Fatal(err)
+func (db *mongoDB) Save(s []score.Score) error {
+	scoreAsInterface := make([]interface{}, len(s))
+	for i, v := range s {
+		scoreAsInterface[i] = v
 	}
+	_, err := db.collection.InsertMany(context.TODO(), scoreAsInterface)
+	return err
 }
 
-func (db *MangoDB) InitMango() {
+func InitMango(db *mongoDB) {
 	// set client options
 	clientOptions := options.Client().ApplyURI("mongodb://root:example@localhost:27017")
 
@@ -59,22 +61,25 @@ func (db *MangoDB) InitMango() {
 	db.collection = client.Database("game").Collection("score")
 }
 
-func (db *MangoDB) GetAll() []model.Score {
+func (db *mongoDB) GetAll() ([]score.Score, error) {
+
+	var scores []score.Score
 	cursor, err := db.collection.Find(context.TODO(), bson.M{})
 	if err != nil {
-		log.Fatal(err)
+		return scores, err
 	}
 
-	var scores []model.Score
 	for cursor.Next(context.TODO()) {
-		var result model.Score
+		var result score.Score
 		if err := cursor.Decode(&result); err != nil {
-			log.Fatal(err)
+			return scores, err
 		}
 		scores = append(scores, result)
 	}
+
 	if err := cursor.Err(); err != nil {
-		log.Fatal(err)
+		return scores, err
 	}
-	return scores
+
+	return scores, nil
 }

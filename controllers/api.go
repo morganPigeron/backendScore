@@ -1,41 +1,47 @@
-package presenter
+package controllers
 
 import (
-	"backend-score/model"
-	"backend-score/repository"
-	"fmt"
+	"backend-score/core/score"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Api struct {
-	Repository *repository.MangoDB
+	service score.GameScoreService
 }
 
 func NewApi() *Api {
 	return new(Api)
 }
 
-func (api *Api) SetRepository(r *repository.MangoDB) {
-	api.Repository = r
+func (api *Api) SetService(service score.GameScoreService) {
+	api.service = service
 }
 
 func (api *Api) Start() {
+
 	router := gin.Default()
+
 	router.GET("/scores", func(c *gin.Context) {
-		result := api.Repository.GetAll()
+		result, err := api.service.GetAll()
+		if err != nil {
+			log.Fatal("getAll failed")
+		}
 		c.JSON(http.StatusOK, result)
 	})
 
 	router.POST("/scores", func(c *gin.Context) {
-		var score model.Score
+		var score score.Score
 		if err := c.ShouldBindJSON(&score); err != nil {
-			fmt.Println(score)
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		api.Repository.InsertMany([]interface{}{score})
+		err := api.service.Save(score)
+		if err != nil {
+			log.Fatal(err)
+		}
 		c.JSON(http.StatusOK, score)
 	})
 

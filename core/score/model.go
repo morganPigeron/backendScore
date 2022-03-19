@@ -1,4 +1,4 @@
-package model
+package score
 
 type Score struct {
 	Player string `json:"player" binding:"required"`
