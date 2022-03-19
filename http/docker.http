@@ -1,0 +1,14 @@
+### get all scores
+
+GET http://localhost:8888/scores HTTP/1.1
+
+### post a new score
+
+POST http://localhost:8888/scores HTTP/1.1
+content-type: application/json
+
+{
+  "player": "{{$guid}}",
+  "date": "{{$datetime rfc1123|iso8601}}",
+  "points":{{$randomInt 0 100}}
+}

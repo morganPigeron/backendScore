@@ -4,6 +4,7 @@ import (
 	"backend-score/core/score"
 	"context"
 	"log"
+	"os"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -40,7 +41,11 @@ func (db *mongoDB) Save(s []score.Score) error {
 
 func InitMango(db *mongoDB) {
 	// set client options
-	clientOptions := options.Client().ApplyURI("mongodb://root:example@localhost:27017")
+	ip := os.Getenv("IP_DB")
+	if len(ip) <= 0 {
+		ip = "localhost"
+	}
+	clientOptions := options.Client().ApplyURI("mongodb://root:example@" + ip + ":27017")
 
 	// connect to mango
 	client, err := mongo.Connect(context.TODO(), clientOptions)
